@@ -15,11 +15,13 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
-// routes 
+// default -- routes 
 app.get('/', (req, res) => {
     res.send('Swap-Swag API')
 })
-// get product from the client 
+
+// PRODUCTS 
+// create product 
 app.post('/product', (req, res) => {
     const product = new Product();
     product.title = req.body.title;
@@ -44,6 +46,45 @@ app.get('/product', (req, res) => {
     });
 });
 
+
+// WISHLIST 
+// create whishList 
+app.post('/wishlist', (req, res) => {
+    const wishList = new WishList();
+    wishList.title = req.body.title;
+
+    wishList.save((err, newWishList) => {
+        if (err) {
+            res.status(500).send({ error: "Could not create wishList" })
+        } else {
+            res.send(newWishList)
+        }
+    })
+})
+
+app.put('wishlist/product/add', (req, res) => {
+    // find product in the db 
+    Product.findOne({ _id: req.body.productId }, (err, product) => {
+        if (err) {
+            res.status(500).send({ error: "Product with given ID not found" })
+        } else {
+            WishList.update({ _id: req.body.wishListId }, { $addToSet: { products: product._id } }, (err, wishList) => {
+                if (err) {
+                    res.status(500).send({ error: "Product Not found" })
+                } else {
+                    res.send(wishList)
+                }
+            })
+        }
+    })
+})
+
+//get list of WishList
+app.get('/wishlist', (req, res) => {
+    WishList.find({}, (err, wishLists) => {
+        res.send(wishLists)
+    })
+})
 
 // default port 
 app.listen(3000, () => console.log('Server Started!'));
