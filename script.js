@@ -62,7 +62,7 @@ app.post('/wishlist', (req, res) => {
     })
 })
 
-app.put('wishlist/product/add', (req, res) => {
+app.put('/wishlist/product/add', (req, res) => {
     // find product in the db 
     Product.findOne({ _id: req.body.productId }, (err, product) => {
         if (err) {
@@ -72,7 +72,7 @@ app.put('wishlist/product/add', (req, res) => {
                 if (err) {
                     res.status(500).send({ error: "Product Not found" })
                 } else {
-                    res.send(wishList)
+                    res.send('Successfuly added to wishList')
                 }
             })
         }
@@ -81,8 +81,12 @@ app.put('wishlist/product/add', (req, res) => {
 
 //get list of WishList
 app.get('/wishlist', (req, res) => {
-    WishList.find({}, (err, wishLists) => {
-        res.send(wishLists)
+    WishList.find({}).populate({ path: 'products', model: 'Product' }).exec((err, wishLists) => {
+        if (err) {
+            res.status(500).send({ error: 'Could not fetch WishList' })
+        } else {
+            res.send(wishLists)
+        }
     })
 })
 
